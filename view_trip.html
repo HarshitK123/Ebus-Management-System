@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Bus Trips</title>
+    <link rel="stylesheet" href="view_trip.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Bus Trips</h2>
+        <div id="tripList">
+            
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.3.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.3.0/firebase-database.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-app.js";
+        import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCASinBWPEgl1CJRSy_70sQVLAPu-tnYbQ",
+            authDomain: "project-1-d8a8c.firebaseapp.com",
+            databaseURL: "https://project-1-d8a8c-default-rtdb.firebaseio.com",
+            projectId: "project-1-d8a8c",
+            storageBucket: "project-1-d8a8c.appspot.com",
+            messagingSenderId: "1037828007362",
+            appId: "1:1037828007362:web:307010c9842b9a8978625b",  
+            measurementId: "G-2PJ0QX5F4R"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const tripList = document.getElementById('tripList');
+
+        function fetchAndDisplayTrips() {
+            tripList.innerHTML = ''; 
+            const tripsRef = ref(db, 'bus_trips');
+            get(tripsRef).then((snapshot) => {
+                if (snapshot.exists()) {
+                    const trips = snapshot.val();
+                    Object.keys(trips).forEach((tripId) => {
+                        const trip = trips[tripId];
+                        const tripDiv = document.createElement('div');
+                        tripDiv.classList.add('trip');
+                        tripDiv.innerHTML = `
+                            <p><strong>From:</strong> ${trip.from}</p>
+                            <p><strong>To:</strong> ${trip.to}</p>
+                            <p><strong>Departure Time:</strong> ${trip.departureTime}</p>
+                            <p><strong>Boarding Point:</strong> ${trip.boardingPoint}</p>
+                            <p><strong>Arrival Time:</strong> ${trip.arrivalTime}</p>
+                            <p><strong>Bus Plate Number:</strong> ${trip.busPlateNumber}</p>
+                            <p><strong>Conductor Phone Number:</strong> ${trip.conductorPhoneNumber}</p>
+                            <button class="deleteBtn" data-trip-id="${tripId}">Delete</button>
+                            <button class="geolocationBtn" data-from="${trip.from}" data-to="${trip.to}">Track Current Location</button>
+                        `;
+                        tripList.appendChild(tripDiv);
+                    });
+                } else {
+                    tripList.innerHTML = '<p>No bus trips available</p>';
+                }
+            }).catch((error) => {
+                console.error("Error fetching bus trips:", error);
+            });
+        }
+
+        function deleteTrip(tripId) {
+            const tripRef = ref(db, 'bus_trips/' + tripId);
+            set(tripRef, null)
+                .then(() => {
+                    console.log("Trip deleted successfully");
+                    fetchAndDisplayTrips();
+                })
+                .catch((error) => {
+                    console.error("Error deleting trip:", error);
+                });
+        }
+
+        
+        tripList.addEventListener('click', (event) => {
+            if (event.target.classList.contains('deleteBtn')) {
+                const tripId = event.target.dataset.tripId;
+                deleteTrip(tripId);
+            } else {
+                console.log("Error deleting trip")
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', fetchAndDisplayTrips);
+    </script>
+</body>
+</html>

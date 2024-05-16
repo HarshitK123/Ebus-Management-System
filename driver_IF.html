@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Interface</title>
+    <link rel="stylesheet" href="driver_IF.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Welcome</h2>
+        <form action="create_trip.html">
+            <input type="submit" value="Create Trip" class="btn-create">
+        </form>
+        <form action="view_trip.html">
+            <input type="submit" value="View Trips" class="btn-view">
+        </form>
+        <form action="main.html">
+            <button id="sign-out" class="signout-btn">Sign Out</button>
+        </form>
+        
+    </div>
+    <script src="https://www.gstatic.com/firebasejs/9.3.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.3.0/firebase-auth.js"></script>
+    <script type="module">
+        import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-auth.js";
+
+        const auth = getAuth();
+
+        document.getElementById("sign-out").addEventListener("click", () => {
+            signOut(auth).then(() => {
+                window.location.href = "main.html"; 
+            }).catch((error) => {
+                console.error("Sign out error:", error);
+            });
+        });
+    </script>
+</body>
+</html>

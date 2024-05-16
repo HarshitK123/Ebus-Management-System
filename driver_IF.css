@@ -1,0 +1,53 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 600px;
+    margin: 100px auto;
+    text-align: center;
+}
+
+h2 {
+    font-size: 2em;
+    margin-bottom: 30px;
+}
+
+.btn-create, .btn-view {
+    display: block;
+    width: 100%;
+    background-color: #007bff;
+    color: #fff;
+    text-decoration: none;
+    padding: 15px 0;
+    margin-bottom: 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn-create:hover, .btn-view:hover {
+    background-color: #0056b3;
+}
+
+.signout-btn {
+    display: block;
+    width: 100px;
+    padding: 10px;
+    background-color: #dc3545; /* Red color */
+    color: #fff;
+    text-align: center;
+    text-decoration: none;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.signout-btn:hover {
+    background-color: #c82333; /* Darker red color on hover */
+}

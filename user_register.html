@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Registration</title>
+    <link rel="stylesheet" href="user_register.css">
+</head>
+<body>
+    <div class="box">
+        <div class="form">
+            <h2>Register</h2>
+            <form id="registerForm">
+                <div class="inputbox">
+                    <input type="text" id="firstname" placeholder="First name" required>
+                </div>
+                <div class="inputbox">
+                    <input type="text" id="lastname" placeholder="Last name" required>
+                </div>
+                <div class="inputbox">
+                    <input type="email" id="email" placeholder="Email" required>
+                </div>
+                <div class="inputbox">
+                    <input type="password" id="password" placeholder="Password" required>
+                </div>
+        
+                <input type="submit" id="register">
+            </form>
+        </div>
+    </div>
+
+       <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-auth.js";
+        import { getDatabase, ref, set, get, child, query, equalTo } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCASinBWPEgl1CJRSy_70sQVLAPu-tnYbQ",
+            authDomain: "project-1-d8a8c.firebaseapp.com",
+            databaseURL: "https://project-1-d8a8c-default-rtdb.firebaseio.com",
+            projectId: "project-1-d8a8c",
+            storageBucket: "project-1-d8a8c.appspot.com",
+            messagingSenderId: "1037828007362",
+            appId: "1:1037828007362:web:307010c9842b9a8978625b",  
+            measurementId: "G-2PJ0QX5F4R"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        register.addEventListener("click", function(e){
+            e.preventDefault();
+
+            const firstName = document.getElementById("firstname").value;
+            const lastName = document.getElementById("lastname").value;
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            if (!firstName || !lastName || !email || !password) {
+                alert("Please enter all fields.");
+                return;
+            }
+
+            const emailRef = query(ref(db, 'users'), equalTo(email));
+            get(emailRef).then((snapshot) => {
+                if (snapshot.exists()) {
+                    alert("This email is already in use. Please use a different email.");
+                } else {
+                    createUserWithEmailAndPassword(auth, email, password)
+                        .then((userCredential) => {
+                            const user = userCredential.user;
+                            alert("Registered successfully!");
+                            set(ref(db, 'users/' + user.uid), {
+                                firstName: firstName,
+                                lastName: lastName,
+                                email: email
+
+                            }).then(() => {
+                                console.log("Data stored successfully.");
+                                window.location.href = "main.html";
+                            }).catch((error) => {
+                                console.error("Error storing user data: ", error);
+                            });
+                        })
+                        .catch((error) => {
+                            alert("Email already exists");
+                        });
+                }
+            }).catch((error) => {
+                console.error("Error checking email existence:", error);
+            });
+        });
+    </script>
+</body>
+</html>

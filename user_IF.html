@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Bus Trips</title>
+    <link rel="stylesheet" href="user_IF.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Search Bus Trips</h2>
+        <form>
+            <div class="inputbox">
+                <input type="text" id="from" placeholder="From (City)" required>
+            </div>
+            <div class="inputbox">
+                <input type="text" id="to" placeholder="To (City)" required>
+            </div>
+            <input type="button" id="seeTripsBtn" value="See Trips" class="btn-search">
+        </form>
+        <div id="tripList"></div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.3.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.3.0/firebase-database.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-app.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCASinBWPEgl1CJRSy_70sQVLAPu-tnYbQ",
+            authDomain: "project-1-d8a8c.firebaseapp.com",
+            databaseURL: "https://project-1-d8a8c-default-rtdb.firebaseio.com",
+            projectId: "project-1-d8a8c",
+            storageBucket: "project-1-d8a8c.appspot.com",
+            messagingSenderId: "1037828007362",
+            appId: "1:1037828007362:web:307010c9842b9a8978625b",  
+            measurementId: "G-2PJ0QX5F4R"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const tripList = document.getElementById("tripList");
+
+        function searchBusTrips(event) {
+            event.preventDefault();
+            const fromCity = document.getElementById("from").value.trim().toLowerCase();
+            const toCity = document.getElementById("to").value.trim().toLowerCase();
+            if (fromCity === '' || toCity === '') {
+                alert("Please enter both 'From' and 'To' cities.");
+                return;
+            }
+            get(ref(db, 'bus_trips')).then((snapshot) => {
+                if (snapshot.exists()) {
+                    const trips = snapshot.val();
+                    const filteredTrips = Object.values(trips).filter(trip => 
+                        trip.from.toLowerCase() === fromCity && trip.to.toLowerCase() === toCity
+                    );
+                    if (filteredTrips.length === 0) {
+                        tripList.innerHTML = '<p>No bus trips available</p>';
+                    } else {
+                        displayBusTrips(filteredTrips);
+                    }
+                } 
+            }).catch((error) => {
+                console.error("Error fetching bus trips:", error);
+            });
+        }
+
+        function displayBusTrips(trips) {
+            tripList.innerHTML = '';
+            trips.forEach((trip) => {
+                const tripDiv = document.createElement('div');
+                tripDiv.classList.add('trip');
+                tripDiv.innerHTML = `
+                    <p><strong>From:</strong> ${trip.from}</p>
+                    <p><strong>To:</strong> ${trip.to}</p>
+                    <p><strong>Departure Time:</strong> ${trip.departureTime}</p>
+                    <p><strong>Boarding Point:</strong> ${trip.boardingPoint}</p>
+                    <p><strong>Arrival Time:</strong> ${trip.arrivalTime}</p>
+                    <p><strong>Bus Plate Number:</strong> ${trip.busPlateNumber}</p>
+                    <p><strong>Conductor Phone Number:</strong> ${trip.conductorPhoneNumber}</p>
+                    
+                `;
+                tripList.appendChild(tripDiv);
+            });
+        }
+
+        document.getElementById("seeTripsBtn").addEventListener("click", searchBusTrips);
+
+        tripList.addEventListener('click', (event) => {
+            if (event.target.classList.contains('geolocationBtn')) {
+                const latitude = event.target.dataset.lat;
+                const longitude = event.target.dataset.lng;
+                displayGeolocationInfo(latitude, longitude);
+            }
+        });
+
+        function trackGeolocation(from, to) {
+            navigator.geolocation.getCurrentPosition((position) => {
+                const { latitude, longitude } = position.coords;
+                alert(`Current Geolocation for trip from ${from} to ${to}: \nLatitude: ${latitude}, Longitude: ${longitude}`);
+            }, (error) => {
+                console.error("Error getting current geolocation:", error);
+            });
+        }
+
+        tripList.addEventListener('click', (event) => {
+            if (event.target.classList.contains('geolocationBtn')) {
+                const from = event.target.dataset.from;
+                const to = event.target.dataset.to;
+                trackGeolocation(from, to);
+            }
+        });
+
+    </script>
+</body>
+</html>

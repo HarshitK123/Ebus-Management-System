@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Driver</title>
+    <link rel="stylesheet" href="admin_IF.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Welcome, Admin</h2>
+        <form action="admin_loggedin.html">
+            <input type="submit" value="Create driver" class="btn-create">
+        </form>
+        <form action="main.html">
+            <button id="signoutBtn" class="btn-signout">Sign Out</button>
+        </form>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.3.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.3.0/firebase-auth.js"></script>
+    <script type="module">
+        import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-auth.js";
+
+        const auth = getAuth();
+
+        document.getElementById("signoutBtn").addEventListener("click", () => {
+            signOut(auth).then(() => {
+                window.location.href = "main.html"; 
+            }).catch((error) => {
+                console.error("Sign out error:", error);
+            });
+        });
+    </script>
+</body>
+</html>

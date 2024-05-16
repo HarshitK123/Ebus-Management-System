@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Bus Trip</title>
+    <link rel="stylesheet" href="create_trip.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Create Bus Trip</h2>
+        <form id="createTripForm">
+            <!-- Add a hidden input field to store the user ID -->
+            <input type="hidden" id="userId">
+            <div class="inputbox">
+                <input type="text" id="from" placeholder="From (City)" required>
+            </div>
+            <div class="inputbox">
+                <input type="text" id="to" placeholder="To (City)" required>
+            </div>
+            <div class="inputbox">
+                <input type="datetime-local" id="departureTime" required>
+            </div>
+            <div class="inputbox">
+                <input type="text" id="boardingPoint" placeholder="Boarding Point" required>
+            </div>
+            <div class="inputbox">
+                <input type="datetime-local" id="arrivalTime" required>
+            </div>
+            <div class="inputbox">
+                <input type="text" id="busPlateNumber" placeholder="Bus Plate Number" required>
+            </div>
+            <div class="inputbox">
+                <input type="text" id="conductorPhoneNumber" placeholder="Conductor Phone Number" required>
+            </div>
+            <input type="submit" id="createTripBtn" value="Create Bus Trip">
+            <!-- Add a button to share geolocation -->
+            <button id="shareLocationBtn">Share Location</button>
+        </form>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.3.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.3.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.3.0/firebase-auth.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-app.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-auth.js";
+        import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCASinBWPEgl1CJRSy_70sQVLAPu-tnYbQ",
+                authDomain: "project-1-d8a8c.firebaseapp.com",
+                databaseURL: "https://project-1-d8a8c-default-rtdb.firebaseio.com",
+                projectId: "project-1-d8a8c",
+                storageBucket: "project-1-d8a8c.appspot.com",
+                messagingSenderId: "1037828007362",
+                appId: "1:1037828007362:web:307010c9842b9a8978625b",  
+                measurementId: "G-2PJ0QX5F4R"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const auth = getAuth();
+
+        // Listen for changes in authentication state
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                // User is signed in
+                document.getElementById("userId").value = user.uid; // Set the user ID in the hidden input field
+            } else {
+                // User is signed out
+                // Redirect to sign-in page or handle authentication flow
+            }
+        });
+
+        const createTripForm = document.getElementById("createTripForm");
+        const shareLocationBtn = document.getElementById("shareLocationBtn");
+
+        let watchId; // Variable to store watchPosition ID
+
+        shareLocationBtn.addEventListener("click", () => {
+            if ('geolocation' in navigator) {
+                // Start watching the user's position
+                watchId = navigator.geolocation.watchPosition((position) => {
+                    const { latitude, longitude } = position.coords;
+                    const userId = document.getElementById("userId").value;
+
+                    // Call OpenCage API to get address
+                    const openCageUrl = `https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=2d08a145023f4a81895cf90a391fb1cb`;
+                    fetch(openCageUrl)
+                        .then(response => response.json())
+                        .then(data => {
+                            const address = data.results[0].formatted;
+                            
+                            const newTripData = {
+                                userId, // Include the user ID in the trip data
+                                from: document.getElementById("from").value,
+                                to: document.getElementById("to").value,
+                                departureTime: document.getElementById("departureTime").value,
+                                boardingPoint: document.getElementById("boardingPoint").value,
+                                arrivalTime: document.getElementById("arrivalTime").value,
+                                busPlateNumber: document.getElementById("busPlateNumber").value,
+                                conductorPhoneNumber: document.getElementById("conductorPhoneNumber").value,
+                                latitude, // Add latitude to newTripData
+                                longitude, // Add longitude to newTripData
+                                address // Add address to newTripData
+                            };
+
+                            // Store the trip data in the 'bus_trips' node without generating unique keys
+                            set(ref(db, 'bus_trips/' + userId), newTripData)
+                                .then(() => {
+                                    console.log("Trip data stored successfully!");
+                                })
+                                .catch((error) => {
+                                    console.error("Error storing trip data:", error);
+                                });
+
+                            console.log("Address:", address);
+                        })
+                        .catch(error => {
+                            console.error("Error fetching address:", error);
+                        });
+                });
+            } else {
+                console.error("Geolocation is not supported by this browser.");
+            }
+        });
+
+        createTripForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+
+            const userId = document.getElementById("userId").value; // Retrieve the user ID
+            const from = document.getElementById("from").value;
+            const to = document.getElementById("to").value;
+            const departureTime = document.getElementById("departureTime").value;
+            const boardingPoint = document.getElementById("boardingPoint").value;
+            const arrivalTime = document.getElementById("arrivalTime").value;
+            const busPlateNumber = document.getElementById("busPlateNumber").value;
+            const conductorPhoneNumber = document.getElementById("conductorPhoneNumber").value;
+            const latitude = parseFloat(document.getElementById("latitude").value);
+            const longitude = parseFloat(document.getElementById("longitude").value);
+            const address = document.getElementById("address").value;
+
+            const newTripData = {
+                userId, // Include the user ID in the trip data
+                from,
+                to,
+                departureTime,
+                boardingPoint,
+                arrivalTime,
+                busPlateNumber,
+                conductorPhoneNumber,
+                latitude, // Add latitude to newTripData
+                longitude, // Add longitude to newTripData
+                address // Add address to newTripData
+            };
+
+            // Store the trip data in the 'bus_trips' node without generating unique keys
+            set(ref(db, 'bus_trips/' + userId), newTripData)
+                .then(() => {
+                    alert("Bus trip created successfully!");
+                    createTripForm.reset();
+                    window.location.href = "view_trip.html";
+                })
+                .catch((error) => {
+                    console.error("Error creating bus trip:", error);
+                });
+        });
+
+        // Add the following line to remove the watcher when needed
+        // navigator.geolocation.clearWatch(watchId);
+
+    </script>
+</body>
+</html>
